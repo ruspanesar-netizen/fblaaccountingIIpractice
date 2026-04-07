@@ -1,0 +1,687 @@
+import React, { useMemo, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Shuffle, RotateCcw, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
+
+const QUESTION_BANK = [
+  {
+    id: "2016-1",
+    year: 2016,
+    number: 1,
+    topic: "Cash flow classification",
+    prompt: "The purchase of land is an example of a(n)",
+    choices: {
+      A: "investing activity.",
+      B: "operating activity.",
+      C: "capital activity.",
+      D: "financing activity.",
+    },
+    correct: "A",
+    explanation:
+      "Buying land means the company is acquiring a long-term asset. That belongs under investing activities, not operating or financing.",
+  },
+  {
+    id: "2016-2",
+    year: 2016,
+    number: 2,
+    topic: "Accounting process",
+    prompt: "The correct order of the three stages of accounting is",
+    choices: {
+      A: "communication, processing, and measurement.",
+      B: "measurement, communication, and processing.",
+      C: "processing, measurement, and communication.",
+      D: "measurement, processing, and communication.",
+    },
+    correct: "D",
+    explanation:
+      "Accounting starts by measuring financial information, then processing it into usable records, and finally communicating it to decision-makers.",
+  },
+  {
+    id: "2016-3",
+    year: 2016,
+    number: 3,
+    topic: "Operating activities",
+    prompt: "Which of the following is an example of an operating activity?",
+    choices: {
+      A: "Obtaining capital from stockholders",
+      B: "Selling goods and services to customers",
+      C: "Purchasing equipment",
+      D: "Selling land",
+    },
+    correct: "B",
+    explanation:
+      "Operating activities are the core day-to-day revenue-producing activities of the business. Selling goods and services is the clearest example.",
+  },
+  {
+    id: "2016-4",
+    year: 2016,
+    number: 4,
+    topic: "Profitability",
+    prompt: "A company's ability to attract and hold investment capital ultimately depends on its",
+    choices: {
+      A: "budgeting.",
+      B: "planning.",
+      C: "liquidity.",
+      D: "profitability.",
+    },
+    correct: "D",
+    explanation:
+      "Investors ultimately care about whether the business can generate profit. Budgeting and planning matter, but profitability is the core driver.",
+  },
+  {
+    id: "2016-5",
+    year: 2016,
+    number: 5,
+    topic: "Users of accounting information",
+    prompt: "One user of accounting information with an indirect financial interest in a business is",
+    choices: {
+      A: "a creditor.",
+      B: "a financial adviser.",
+      C: "management.",
+      D: "an investor.",
+    },
+    correct: "B",
+    explanation:
+      "Creditors, management, and investors have direct stakes. A financial adviser uses the information but usually does not have a direct financial ownership or claim.",
+  },
+  {
+    id: "2016-6",
+    year: 2016,
+    number: 6,
+    topic: "Regulatory bodies",
+    prompt: "Which of the following is an agency of the U.S. government?",
+    choices: {
+      A: "IASB",
+      B: "SEC",
+      C: "FASB",
+      D: "AICPA",
+    },
+    correct: "B",
+    explanation:
+      "The SEC is a federal government agency. FASB, IASB, and AICPA are important standard-setting or professional bodies, but not government agencies.",
+  },
+  {
+    id: "2018-1",
+    year: 2018,
+    number: 1,
+    topic: "Sarbanes-Oxley",
+    prompt:
+      "According to the Sarbanes-Oxley Act, if an employee manipulates financial information, __________ is ultimately responsible for ensuring the accuracy of the information.",
+    choices: {
+      A: "external auditors",
+      B: "internal employees",
+      C: "middle management",
+      D: "top management",
+    },
+    correct: "D",
+    explanation:
+      "Sarbanes-Oxley places ultimate responsibility for the accuracy of financial reporting on top management, especially senior executives.",
+  },
+  {
+    id: "2018-2",
+    year: 2018,
+    number: 2,
+    topic: "Transactions",
+    prompt: "Accountants refer to an economic event as a __________.",
+    choices: {
+      A: "change in ownership",
+      B: "purchase",
+      C: "sale",
+      D: "transaction",
+    },
+    correct: "D",
+    explanation:
+      "A transaction is the general accounting term for an economic event that affects the financial statements.",
+  },
+  {
+    id: "2018-3",
+    year: 2018,
+    number: 3,
+    topic: "Accounting process",
+    prompt: "The accounting process is correctly sequenced as __________.",
+    choices: {
+      A: "communication, recording, identification",
+      B: "identification, communication, recording",
+      C: "identification, recording, communication",
+      D: "recording, communication, identification",
+    },
+    correct: "C",
+    explanation:
+      "You first identify the transaction, then record it, and then communicate the information through reports and statements.",
+  },
+  {
+    id: "2018-4",
+    year: 2018,
+    number: 4,
+    topic: "Internal vs external users",
+    prompt: "Which of the following would NOT be considered internal users of accounting data for a company?",
+    choices: {
+      A: "Creditors of the company",
+      B: "Salespeople of the company",
+      C: "The controller of the company",
+      D: "The president of the company",
+    },
+    correct: "A",
+    explanation:
+      "Creditors are external users. Salespeople, controllers, and presidents are part of the company and therefore internal users.",
+  },
+  {
+    id: "2018-5",
+    year: 2018,
+    number: 5,
+    topic: "Bookkeeping",
+    prompt: "Bookkeeping differs from accounting in that bookkeeping primarily involves which part of the accounting process?",
+    choices: {
+      A: "Analysis",
+      B: "Communication",
+      C: "Identification",
+      D: "Recording",
+    },
+    correct: "D",
+    explanation:
+      "Bookkeeping is mainly about recording transactions. Accounting is broader and also includes analysis, interpretation, and communication.",
+  },
+  {
+    id: "2018-6",
+    year: 2018,
+    number: 6,
+    topic: "Ethics",
+    prompt: "The first step in solving an ethical dilemma is to __________.",
+    choices: {
+      A: "identify and analyze the principal elements in the situation",
+      B: "identify the alternatives",
+      C: "recognize an ethical situation and the ethical issues involved",
+      D: "weigh the impact of each alternative on various stakeholders",
+    },
+    correct: "C",
+    explanation:
+      "Before you can solve an ethical problem, you first have to recognize that one exists and identify the ethical issue.",
+  },
+  {
+    id: "2019-1",
+    year: 2019,
+    number: 1,
+    topic: "Permanent accounts",
+    prompt: "After the accounts are closed and the journal entries have been posted, the following account would have a balance",
+    choices: {
+      A: "miscellaneous expense",
+      B: "professional expense",
+      C: "supplies",
+      D: "payroll taxes expense",
+    },
+    correct: "C",
+    explanation:
+      "Expense accounts are temporary and get closed. Supplies is a balance sheet account, so it remains open and keeps its balance.",
+  },
+  {
+    id: "2019-2",
+    year: 2019,
+    number: 2,
+    topic: "Notes payable",
+    prompt: "If the maturity date of a 90-day note payable is August 3, what was the issue date?",
+    choices: {
+      A: "June 4",
+      B: "May 4",
+      C: "May 3",
+      D: "May 5",
+    },
+    correct: "D",
+    explanation:
+      "Count forward 90 days from May 5 to reach August 3. These maturity-date questions are mostly about careful day counting.",
+  },
+  {
+    id: "2019-3",
+    year: 2019,
+    number: 3,
+    topic: "Bonds",
+    prompt: "When a corporation sells a bond issue to an investment firm, the firm is known as the",
+    choices: {
+      A: "mortgagor",
+      B: "mortgagee",
+      C: "stockholder",
+      D: "underwriter",
+    },
+    correct: "D",
+    explanation:
+      "An underwriter is the investment firm that helps issue and sell securities such as bonds.",
+  },
+  {
+    id: "2019-4",
+    year: 2019,
+    number: 4,
+    topic: "Financial analysis",
+    prompt: "The percentage of change in long-term liabilities is an example of ________ analysis.",
+    choices: {
+      A: "solvency",
+      B: "vertical",
+      C: "profitability",
+      D: "horizontal",
+    },
+    correct: "D",
+    explanation:
+      "Horizontal analysis looks at changes over time, often expressed as percentage increases or decreases from one period to another.",
+  },
+  {
+    id: "2019-5",
+    year: 2019,
+    number: 5,
+    topic: "Federal income tax",
+    prompt: "Federal income tax is calculated for",
+    choices: {
+      A: "a corporation",
+      B: "a partnership",
+      C: "a proprietorship",
+      D: "all of the answers are correct",
+    },
+    correct: "A",
+    explanation:
+      "In this accounting context, corporations pay federal income tax as entities. Partnerships and proprietorships generally pass income through to owners.",
+  },
+  {
+    id: "2019-6",
+    year: 2019,
+    number: 6,
+    topic: "Stockholders",
+    prompt: "Stockholders with voting rights are",
+    choices: {
+      A: "common stockholders",
+      B: "preferred stockholders",
+      C: "preferred stockholders with at least 100 shares of stock",
+      D: "common stockholders with at least 100 shares of stock",
+    },
+    correct: "A",
+    explanation:
+      "Voting rights are typically attached to common stock, not preferred stock.",
+  },
+  {
+    id: "2021-4",
+    year: 2021,
+    number: 4,
+    topic: "Periodic statements",
+    prompt: "The length of time covered by a set of periodic financial statements is referred to as the",
+    choices: {
+      A: "fiscal cycle",
+      B: "natural business year",
+      C: "accounting period",
+      D: "business cycle",
+    },
+    correct: "C",
+    explanation:
+      "The accounting period is the specific span of time that the statements cover, such as a month, quarter, or year.",
+  },
+  {
+    id: "2021-5",
+    year: 2021,
+    number: 5,
+    topic: "Adjusting entries",
+    prompt: "Adjusting entries affect",
+    choices: {
+      A: "only income statement accounts",
+      B: "only balance sheet accounts",
+      C: "both income statement and balance sheet accounts",
+      D: "only cash flow statement accounts",
+    },
+    correct: "C",
+    explanation:
+      "Most adjusting entries update one income statement account and one balance sheet account, such as expense and prepaid asset, or revenue and liability.",
+  },
+  {
+    id: "2021-6",
+    year: 2021,
+    number: 6,
+    topic: "Cash basis accounting",
+    prompt:
+      "The system of preparing financial statements based on recognizing revenues when the cash is received and reported expenses when the cash is paid is called _______ accounting",
+    choices: {
+      A: "accrual basis",
+      B: "operating cycle",
+      C: "cash basis",
+      D: "revenue recognition",
+    },
+    correct: "C",
+    explanation:
+      "Cash basis accounting records revenue when cash comes in and expenses when cash goes out. Accrual accounting does not wait for cash movement.",
+  },
+  {
+    id: "2021-7",
+    year: 2021,
+    number: 7,
+    topic: "Accrual accounting",
+    prompt:
+      "The approach to preparing financial statements based on recognizing revenues when they are earned and matching expenses to those revenues is",
+    choices: {
+      A: "cash basis accounting",
+      B: "the matching principle",
+      C: "the time period assumption",
+      D: "accrual basis accounting",
+    },
+    correct: "D",
+    explanation:
+      "Accrual basis accounting recognizes revenues when earned and expenses when incurred. The matching principle supports that approach, but the full method is accrual accounting.",
+  },
+  {
+    id: "2021-8",
+    year: 2021,
+    number: 8,
+    topic: "Effects of omitted depreciation",
+    prompt:
+      "If a company mistakenly forgot to record depreciation on office equipment at the end of an accounting period, the financial statements prepared at the time would show",
+    choices: {
+      A: "assets overstated and equity understated",
+      B: "assets and equity both understated",
+      C: "assets overstated, net income understated, and equity overstated",
+      D: "assets, net income, and equity overstated",
+    },
+    correct: "D",
+    explanation:
+      "If depreciation is omitted, expense is too low, so net income is too high. Because accumulated depreciation is too low, assets are too high, and equity is also too high.",
+  },
+  {
+    id: "2021-9",
+    year: 2021,
+    number: 9,
+    topic: "Unearned revenue",
+    prompt:
+      "If a company failed to make the end-of-period adjustment to remove from the Unearned Management Fees account the amount of management fees that were earned, this omission would cause an overstatement of",
+    choices: {
+      A: "net income",
+      B: "assets",
+      C: "liabilities",
+      D: "equity",
+    },
+    correct: "C",
+    explanation:
+      "Unearned revenue is a liability. If some of it has been earned but you fail to reduce it, the liability stays too high.",
+  },
+  {
+    id: "2021-10",
+    year: 2021,
+    number: 10,
+    topic: "Profit margin",
+    prompt: "Profit margin is defined as",
+    choices: {
+      A: "revenues divided by net sales",
+      B: "net sales divided by assets",
+      C: "net income divided by net sales",
+      D: "net income divided by assets",
+    },
+    correct: "C",
+    explanation:
+      "Profit margin measures how much profit is generated from each dollar of sales, so the formula is net income divided by net sales.",
+  },
+];
+
+const YEAR_OPTIONS = ["All", 2016, 2018, 2019, 2021];
+
+function shuffleArray(items) {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+export default function FBLAAccountingPracticeSite() {
+  const [yearFilter, setYearFilter] = useState("All");
+  const [shuffleOn, setShuffleOn] = useState(true);
+  const [seed, setSeed] = useState(0);
+  const [index, setIndex] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [checked, setChecked] = useState(false);
+  const [results, setResults] = useState({});
+
+  const filteredQuestions = useMemo(() => {
+    const base = yearFilter === "All"
+      ? QUESTION_BANK
+      : QUESTION_BANK.filter((q) => q.year === yearFilter);
+    return shuffleOn ? shuffleArray(base) : base;
+  }, [yearFilter, shuffleOn, seed]);
+
+  const current = filteredQuestions[index] ?? null;
+  const attemptedCount = Object.keys(results).length;
+  const correctCount = Object.values(results).filter(Boolean).length;
+  const progress = filteredQuestions.length
+    ? Math.round((attemptedCount / filteredQuestions.length) * 100)
+    : 0;
+
+  const resetSession = () => {
+    setIndex(0);
+    setSelected(null);
+    setChecked(false);
+    setResults({});
+    setSeed((s) => s + 1);
+  };
+
+  const nextQuestion = () => {
+    if (!filteredQuestions.length) return;
+    setSelected(null);
+    setChecked(false);
+    setIndex((prev) => (prev + 1 < filteredQuestions.length ? prev + 1 : 0));
+  };
+
+  const submitAnswer = () => {
+    if (!current || !selected || checked) return;
+    const isCorrect = selected === current.correct;
+    setChecked(true);
+    setResults((prev) => ({ ...prev, [current.id]: isCorrect }));
+  };
+
+  const answerStatus = checked
+    ? selected === current?.correct
+      ? "correct"
+      : "wrong"
+    : "idle";
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-6">
+      <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[320px,1fr]">
+        <Card className="rounded-3xl border-0 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-2xl">FBLA Accounting II Trainer</CardTitle>
+            <CardDescription>
+              Practice multiple-choice questions with instant feedback.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div>
+              <p className="mb-3 text-sm font-medium text-slate-700">Filter by year</p>
+              <div className="flex flex-wrap gap-2">
+                {YEAR_OPTIONS.map((option) => {
+                  const active = yearFilter === option;
+                  return (
+                    <Button
+                      key={String(option)}
+                      variant={active ? "default" : "outline"}
+                      className="rounded-2xl"
+                      onClick={() => {
+                        setYearFilter(option);
+                        setIndex(0);
+                        setSelected(null);
+                        setChecked(false);
+                        setResults({});
+                        setSeed((s) => s + 1);
+                      }}
+                    >
+                      {option}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-slate-700">Session progress</p>
+                <span className="text-sm text-slate-500">{progress}%</span>
+              </div>
+              <Progress value={progress} className="h-3" />
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-2xl bg-slate-100 p-3">
+                  <div className="text-slate-500">Questions</div>
+                  <div className="mt-1 text-xl font-semibold">{filteredQuestions.length}</div>
+                </div>
+                <div className="rounded-2xl bg-slate-100 p-3">
+                  <div className="text-slate-500">Correct</div>
+                  <div className="mt-1 text-xl font-semibold">{correctCount}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Button
+                variant="outline"
+                className="w-full justify-start rounded-2xl"
+                onClick={() => {
+                  setShuffleOn((v) => !v);
+                  setIndex(0);
+                  setSelected(null);
+                  setChecked(false);
+                  setResults({});
+                  setSeed((s) => s + 1);
+                }}
+              >
+                <Shuffle className="mr-2 h-4 w-4" />
+                {shuffleOn ? "Shuffle: On" : "Shuffle: Off"}
+              </Button>
+              <Button variant="outline" className="w-full justify-start rounded-2xl" onClick={resetSession}>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Reset session
+              </Button>
+            </div>
+
+            <div className="rounded-2xl bg-slate-100 p-4 text-sm text-slate-600">
+              <p className="font-medium text-slate-800">How it works</p>
+              <p className="mt-2">
+                Pick an answer, hit <span className="font-semibold">Check answer</span>, and the site will tell you right away whether you are correct. If you miss it, you get the right answer and a short explanation.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6">
+          <Card className="rounded-3xl border-0 shadow-sm">
+            <CardHeader>
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge className="rounded-xl px-3 py-1 text-sm">{current ? `${current.year} · Q${current.number}` : "No questions"}</Badge>
+                {current?.topic ? <Badge variant="secondary" className="rounded-xl px-3 py-1 text-sm">{current.topic}</Badge> : null}
+              </div>
+              <CardTitle className="text-xl leading-8">
+                {current ? current.prompt : "No questions match the current filter."}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {current ? (
+                <>
+                  <div className="grid gap-3">
+                    {Object.entries(current.choices).map(([letter, text]) => {
+                      const isPicked = selected === letter;
+                      const isCorrectChoice = checked && current.correct === letter;
+                      const isWrongPicked = checked && isPicked && letter !== current.correct;
+
+                      let classes = "w-full rounded-2xl border p-4 text-left transition ";
+                      if (!checked) {
+                        classes += isPicked
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "border-slate-200 bg-white hover:border-slate-400";
+                      } else if (isCorrectChoice) {
+                        classes += "border-emerald-500 bg-emerald-50";
+                      } else if (isWrongPicked) {
+                        classes += "border-rose-500 bg-rose-50";
+                      } else {
+                        classes += "border-slate-200 bg-white opacity-80";
+                      }
+
+                      return (
+                        <button
+                          key={letter}
+                          className={classes}
+                          onClick={() => !checked && setSelected(letter)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-semibold">
+                              {letter}
+                            </div>
+                            <div className="pt-1 text-base">{text}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 pt-2">
+                    <Button className="rounded-2xl" onClick={submitAnswer} disabled={!selected || checked}>
+                      Check answer
+                    </Button>
+                    <Button variant="outline" className="rounded-2xl" onClick={nextQuestion}>
+                      Next question
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {checked && (
+                    <div
+                      className={`rounded-2xl border p-4 ${
+                        answerStatus === "correct"
+                          ? "border-emerald-300 bg-emerald-50"
+                          : "border-rose-300 bg-rose-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 text-base font-semibold">
+                        {answerStatus === "correct" ? (
+                          <>
+                            <CheckCircle2 className="h-5 w-5" />
+                            Correct
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="h-5 w-5" />
+                            Not quite
+                          </>
+                        )}
+                      </div>
+                      <p className="mt-2 text-sm text-slate-700">
+                        Correct answer: <span className="font-semibold">{current.correct}</span> — {current.choices[current.correct]}
+                      </p>
+                      <p className="mt-3 text-sm text-slate-700">{current.explanation}</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="rounded-2xl bg-slate-100 p-6 text-slate-600">
+                  Try switching the filter or resetting the session.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-3xl border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-lg">Question bank included right now</CardTitle>
+              <CardDescription>
+                Seeded with extracted questions from the uploaded FBLA Accounting II exams.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {[2016, 2018, 2019, 2021].map((year) => {
+                  const count = QUESTION_BANK.filter((q) => q.year === year).length;
+                  return (
+                    <Badge key={year} variant="secondary" className="rounded-xl px-3 py-1 text-sm">
+                      {year}: {count} questions
+                    </Badge>
+                  );
+                })}
+              </div>
+              <p className="mt-4 text-sm text-slate-600">
+                The site is already functional for drilling questions with instant grading. It is structured so more questions can be added easily to the same question bank.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
